@@ -1,0 +1,1175 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Push API",
+      "version": "1.0.0",
+      "description": "API for sending push notifications to iOS, Android, and web applications"
+    },
+    "servers": [
+      {
+        "url": "https://api.push.com/v1",
+        "description": "Production server"
+      }
+    ],
+    "paths": {
+      "/devices/{userId}": {
+        "get": {
+          "summary": "List User Devices",
+          "description": "Get a list of all devices registered for a user",
+          "operationId": "listUserDevices",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "description": "User ID",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of devices",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "description": "Database ID"
+                        },
+                        "device_id": {
+                          "type": "string",
+                          "description": "Device identifier"
+                        },
+                        "user_id": {
+                          "type": "string",
+                          "description": "User ID"
+                        },
+                        "platform": {
+                          "type": "string",
+                          "enum": ["ios", "android", "web"],
+                          "description": "Platform"
+                        },
+                        "token": {
+                          "type": "string",
+                          "description": "Device token"
+                        },
+                        "project_id": {
+                          "type": "string",
+                          "description": "Project ID"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Registration date"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Last update date"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            },
+            "500": {
+              "description": "Server error"
+            }
+          }
+        }
+      },
+      "/devices/{userId}/{deviceIdentifier}": {
+        "put": {
+          "summary": "Register or Update Device",
+          "description": "Register a new device or update an existing one. If a device with the same userId and deviceIdentifier exists, it will be updated.",
+          "operationId": "registerDevice",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "description": "User ID",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "deviceIdentifier",
+              "in": "path",
+              "description": "Device identifier",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["platform", "token"],
+                  "properties": {
+                    "platform": {
+                      "type": "string",
+                      "enum": ["ios", "android", "web"],
+                      "description": "Platform of the device"
+                    },
+                    "token": {
+                      "type": "string",
+                      "description": "Device token from the platform (APNs, FCM, or Web Push)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Device registered or updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "description": "Database ID"
+                      },
+                      "device_id": {
+                        "type": "string",
+                        "description": "Device identifier"
+                      },
+                      "user_id": {
+                        "type": "string",
+                        "description": "User ID"
+                      },
+                      "platform": {
+                        "type": "string",
+                        "enum": ["ios", "android", "web"],
+                        "description": "Platform"
+                      },
+                      "token": {
+                        "type": "string",
+                        "description": "Device token"
+                      },
+                      "project_id": {
+                        "type": "string",
+                        "description": "Project ID"
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Registration date"
+                      },
+                      "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Last update date"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request parameters"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            },
+            "500": {
+              "description": "Server error"
+            }
+          }
+        },
+        "get": {
+          "summary": "Get Device",
+          "description": "Get details about a specific device",
+          "operationId": "getDevice",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "description": "User ID",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "deviceIdentifier",
+              "in": "path",
+              "description": "Device identifier",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Device details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "description": "Database ID"
+                      },
+                      "device_id": {
+                        "type": "string",
+                        "description": "Device identifier"
+                      },
+                      "user_id": {
+                        "type": "string",
+                        "description": "User ID"
+                      },
+                      "platform": {
+                        "type": "string",
+                        "enum": ["ios", "android", "web"],
+                        "description": "Platform"
+                      },
+                      "token": {
+                        "type": "string",
+                        "description": "Device token"
+                      },
+                      "project_id": {
+                        "type": "string",
+                        "description": "Project ID"
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Registration date"
+                      },
+                      "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Last update date"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Device not found"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            },
+            "500": {
+              "description": "Server error"
+            }
+          }
+        },
+        "delete": {
+          "summary": "Delete Device",
+          "description": "Remove a device from push notifications",
+          "operationId": "deleteDevice",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "description": "User ID",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "deviceIdentifier",
+              "in": "path",
+              "description": "Device identifier",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "204": {
+              "description": "Device deleted successfully"
+            },
+            "404": {
+              "description": "Device not found"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            },
+            "500": {
+              "description": "Server error"
+            }
+          }
+        }
+      },
+      "/devices": {
+        "get": {
+          "summary": "List Devices",
+          "description": "Get a list of all registered devices for a user",
+          "operationId": "listDevices",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "query",
+              "description": "User ID to list devices for",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of devices",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "userId": {
+                          "type": "string",
+                          "description": "User ID"
+                        },
+                        "deviceIdentifier": {
+                          "type": "string",
+                          "description": "Device identifier"
+                        },
+                        "platform": {
+                          "type": "string",
+                          "enum": ["ios", "android", "web"],
+                          "description": "Platform"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Registration date"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Last update date"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            }
+          }
+        }
+      },
+      "/preferences/{userId}/{deviceIdentifier}": {
+        "get": {
+          "summary": "Get Device Preferences",
+          "description": "Get notification preferences for a specific device",
+          "operationId": "getDevicePreferences",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "description": "User ID",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "deviceIdentifier",
+              "in": "path",
+              "description": "Device identifier",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Device preferences",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Whether notifications are enabled for this device",
+                        "default": true
+                      },
+                      "categories": {
+                        "type": "object",
+                        "description": "Category-specific preferences",
+                        "additionalProperties": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Device not found"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            }
+          }
+        },
+        "put": {
+          "summary": "Create or Update Device Preferences",
+          "description": "Create or update notification preferences for a specific device",
+          "operationId": "updateDevicePreferences",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "description": "User ID",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "deviceIdentifier",
+              "in": "path",
+              "description": "Device identifier",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether notifications are enabled for this device"
+                    },
+                    "categories": {
+                      "type": "object",
+                      "description": "Category-specific preferences",
+                      "additionalProperties": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Preferences created or updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Whether notifications are enabled for this device"
+                      },
+                      "categories": {
+                        "type": "object",
+                        "description": "Category-specific preferences",
+                        "additionalProperties": {
+                          "type": "boolean"
+                        }
+                      },
+                      "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Last update timestamp"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Device not found"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            }
+          }
+        }
+      },
+      "/preferences/{userId}": {
+        "get": {
+          "summary": "Get User Preferences",
+          "description": "Get notification preferences for a user, including all device preferences",
+          "operationId": "getUserPreferences",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "description": "User ID",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User preferences with device preferences",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Whether notifications are enabled globally",
+                        "default": true
+                      },
+                      "categories": {
+                        "type": "object",
+                        "description": "Category-specific preferences",
+                        "additionalProperties": {
+                          "type": "boolean"
+                        }
+                      },
+                      "devices": {
+                        "type": "array",
+                        "description": "List of device preferences",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "deviceIdentifier": {
+                              "type": "string",
+                              "description": "Device identifier"
+                            },
+                            "platform": {
+                              "type": "string",
+                              "enum": ["ios", "android", "web"],
+                              "description": "Platform"
+                            },
+                            "enabled": {
+                              "type": "boolean",
+                              "description": "Whether notifications are enabled for this device",
+                              "default": true
+                            },
+                            "categories": {
+                              "type": "object",
+                              "description": "Category-specific preferences for this device",
+                              "additionalProperties": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            }
+          }
+        },
+        "put": {
+          "summary": "Create or Update User Preferences",
+          "description": "Create or update notification preferences for a user",
+          "operationId": "updateUserPreferences",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "description": "User ID",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether notifications are enabled globally"
+                    },
+                    "categories": {
+                      "type": "object",
+                      "description": "Category-specific preferences",
+                      "additionalProperties": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Preferences created or updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Whether notifications are enabled globally"
+                      },
+                      "categories": {
+                        "type": "object",
+                        "description": "Category-specific preferences",
+                        "additionalProperties": {
+                          "type": "boolean"
+                        }
+                      },
+                      "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Last update timestamp"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            }
+          }
+        }
+      },
+      "/messages": {
+        "post": {
+          "summary": "Send Message",
+          "description": "Send a push notification to one or more devices",
+          "operationId": "sendMessage",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["userId", "title", "body"],
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "description": "User ID to send the notification to"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "Title of the notification"
+                    },
+                    "body": {
+                      "type": "string",
+                      "description": "Body of the notification"
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": ["ios", "android", "web"],
+                      "description": "Platform to send the notification to (optional, sends to all platforms if not specified)"
+                    },
+                    "deviceIdentifier": {
+                      "type": "string",
+                      "description": "Specific device to send the notification to (optional, sends to all user's devices if not specified)"
+                    },
+                    "category": {
+                      "type": "string",
+                      "description": "Category of the notification (e.g., 'marketing', 'security', 'transaction') (optional)"
+                    },
+                    "data": {
+                      "type": "object",
+                      "description": "Additional data to send with the notification"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Message sent successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the sent message"
+                      },
+                      "userId": {
+                        "type": "string",
+                        "description": "User ID"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "Message title"
+                      },
+                      "body": {
+                        "type": "string",
+                        "description": "Message body"
+                      },
+                      "platform": {
+                        "type": "string",
+                        "enum": ["ios", "android", "web"],
+                        "description": "Platform"
+                      },
+                      "deviceIdentifier": {
+                        "type": "string",
+                        "description": "Device identifier"
+                      },
+                      "category": {
+                        "type": "string",
+                        "description": "Category of the notification"
+                      },
+                      "data": {
+                        "type": "object",
+                        "description": "Additional data sent with the notification"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Sent date"
+                      },
+                      "devices": {
+                        "type": "array",
+                        "description": "Devices the message was sent to",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "deviceIdentifier": {
+                              "type": "string",
+                              "description": "Device identifier"
+                            },
+                            "platform": {
+                              "type": "string",
+                              "enum": ["ios", "android", "web"],
+                              "description": "Platform"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": ["sent", "delivered", "failed"],
+                              "description": "Delivery status"
+                            },
+                            "deliveredAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "Delivery date"
+                            },
+                            "error": {
+                              "type": "string",
+                              "description": "Error message if delivery failed"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request parameters"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            }
+          }
+        },
+        "get": {
+          "summary": "List Messages",
+          "description": "Get a list of sent messages with optional filtering",
+          "operationId": "listMessages",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "query",
+              "description": "User ID to list messages for (optional)",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "platform",
+              "in": "query",
+              "description": "Filter messages by platform (optional)",
+              "required": false,
+              "schema": {
+                "type": "string",
+                "enum": ["ios", "android", "web"]
+              }
+            },
+            {
+              "name": "deviceIdentifier",
+              "in": "query",
+              "description": "Filter messages by device (optional)",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "category",
+              "in": "query",
+              "description": "Filter messages by category (optional)",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "status",
+              "in": "query",
+              "description": "Filter messages by delivery status (optional)",
+              "required": false,
+              "schema": {
+                "type": "string",
+                "enum": ["sent", "delivered", "failed"]
+              }
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "description": "Maximum number of messages to return",
+              "required": false,
+              "schema": {
+                "type": "integer",
+                "default": 10
+              }
+            },
+            {
+              "name": "offset",
+              "in": "query",
+              "description": "Number of messages to skip",
+              "required": false,
+              "schema": {
+                "type": "integer",
+                "default": 0
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of messages",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "messages": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "description": "Message ID"
+                            },
+                            "userId": {
+                              "type": "string",
+                              "description": "User ID"
+                            },
+                            "title": {
+                              "type": "string",
+                              "description": "Message title"
+                            },
+                            "body": {
+                              "type": "string",
+                              "description": "Message body"
+                            },
+                            "platform": {
+                              "type": "string",
+                              "enum": ["ios", "android", "web"],
+                              "description": "Platform"
+                            },
+                            "deviceIdentifier": {
+                              "type": "string",
+                              "description": "Device identifier"
+                            },
+                            "category": {
+                              "type": "string",
+                              "description": "Category of the notification"
+                            },
+                            "data": {
+                              "type": "object",
+                              "description": "Additional data sent with the notification"
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "Sent date"
+                            },
+                            "devices": {
+                              "type": "array",
+                              "description": "Devices the message was sent to",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "deviceIdentifier": {
+                                    "type": "string",
+                                    "description": "Device identifier"
+                                  },
+                                  "platform": {
+                                    "type": "string",
+                                    "enum": ["ios", "android", "web"],
+                                    "description": "Platform"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": ["sent", "delivered", "failed"],
+                                    "description": "Delivery status"
+                                  },
+                                  "deliveredAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Delivery date"
+                                  },
+                                  "error": {
+                                    "type": "string",
+                                    "description": "Error message if delivery failed"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "total": {
+                        "type": "integer",
+                        "description": "Total number of messages"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            }
+          }
+        }
+      },
+      "/messages/{id}": {
+        "get": {
+          "summary": "Get Message",
+          "description": "Get details about a specific message",
+          "operationId": "getMessage",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "description": "Message ID",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Message details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Message ID"
+                      },
+                      "userId": {
+                        "type": "string",
+                        "description": "User ID"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "Message title"
+                      },
+                      "body": {
+                        "type": "string",
+                        "description": "Message body"
+                      },
+                      "platform": {
+                        "type": "string",
+                        "enum": ["ios", "android", "web"],
+                        "description": "Platform"
+                      },
+                      "deviceIdentifier": {
+                        "type": "string",
+                        "description": "Device identifier"
+                      },
+                      "category": {
+                        "type": "string",
+                        "description": "Category of the notification"
+                      },
+                      "data": {
+                        "type": "object",
+                        "description": "Additional data sent with the notification"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Sent date"
+                      },
+                      "devices": {
+                        "type": "array",
+                        "description": "Devices the message was sent to",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "deviceIdentifier": {
+                              "type": "string",
+                              "description": "Device identifier"
+                            },
+                            "platform": {
+                              "type": "string",
+                              "enum": ["ios", "android", "web"],
+                              "description": "Platform"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": ["sent", "delivered", "failed"],
+                              "description": "Delivery status"
+                            },
+                            "deliveredAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "Delivery date"
+                            },
+                            "error": {
+                              "type": "string",
+                              "description": "Error message if delivery failed"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Message not found"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            }
+          }
+        }
+      },
+      "/webhooks": {
+        "post": {
+          "summary": "Register Webhook",
+          "description": "Register a webhook to receive delivery status updates",
+          "operationId": "registerWebhook",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["url", "events"],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "Webhook URL"
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["message.sent", "message.delivered", "message.failed"]
+                      },
+                      "description": "Events to receive"
+                    },
+                    "secret": {
+                      "type": "string",
+                      "description": "Secret for webhook signature verification"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Webhook registered successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Webhook ID"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid request parameters"
+            },
+            "401": {
+              "description": "Unauthorized - Invalid API key"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "apiKey": {
+          "type": "apiKey",
+          "in": "header",
+          "name": "Authorization",
+          "description": "API key for authentication"
+        }
+      }
+    },
+    "security": [
+      {
+        "apiKey": []
+      }
+    ]
+  }
