@@ -41,5 +41,7 @@ class Message(Base):
     title = Column(String, nullable=False)
     body = Column(String, nullable=False)
     category = Column(String, nullable=True)
+    icon = Column(String, nullable=True)
+    action_url = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow) 

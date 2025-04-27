@@ -31,6 +31,8 @@ create table messages (
   title text not null,
   body text not null,
   category text null,
+  icon text null,
+  action_url text null,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );

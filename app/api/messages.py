@@ -28,6 +28,8 @@ def send_message():
                 title=data['title'],
                 body=data['body'],
                 category=data.get('category'),
+                icon=data.get('icon'),
+                action_url=data.get('action_url'),
                 project_id=g.project_id
             )
             result = conn.execute(Message.__table__.insert(), message.__dict__)
@@ -82,13 +84,17 @@ def send_message():
                     'project_id': str(device.project_id)
                 })
                 
-                # Queue task, including VAPID keys for web devices
+                # Queue task, including VAPID keys for web devices, icon, and action_url
                 task = {
                     'message_id': str(message.id),
                     'device_id': device.device_id,
+                    'user_id': device.user_id,
+                    'project_id': str(device.project_id),
                     'title': message.title,
                     'body': message.body,
-                    'category': message.category
+                    'category': message.category,
+                    'icon': message.icon,
+                    'action_url': message.action_url
                 }
                 if device.platform == 'web':
                     task['vapid_public_key'] = project_vapid.get('vapid_public_key')
@@ -103,6 +109,8 @@ def send_message():
                 'title': message.title,
                 'body': message.body,
                 'category': message.category,
+                'icon': message.icon,
+                'action_url': message.action_url,
                 'createdAt': message.created_at,
                 'devices': [{
                     'deviceIdentifier': device.device_id,
