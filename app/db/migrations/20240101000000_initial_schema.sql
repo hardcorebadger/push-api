@@ -4,7 +4,10 @@ create table projects (
   name text not null,
   api_key text not null unique,
   created_at timestamp with time zone default timezone('utc'::text, now()),
-  updated_at timestamp with time zone default timezone('utc'::text, now())
+  updated_at timestamp with time zone default timezone('utc'::text, now()),
+  vapid_public_key text null,
+  vapid_private_key text null,
+  vapid_subject text null
 );
 
 -- Create devices table

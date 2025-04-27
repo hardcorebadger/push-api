@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request, g
 from sqlalchemy import select, and_
 from app.database import engine
 from app.db.models import Device
+from datetime import datetime
+import json
 
 bp = Blueprint('devices', __name__, url_prefix='/devices')
 
@@ -26,11 +28,20 @@ def list_devices(user_id):
 def register_device(user_id, device_id):
     try:
         data = request.get_json()
-        if not data or 'platform' not in data or 'token' not in data:
-            return jsonify({"error": "Missing required fields"}), 400
-
+        
+        # Validate required fields
+        required_fields = ['platform', 'token']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+        
+        # For web push, ensure token is stored as JSON string
+        if data['platform'] == 'web':
+            data['token'] = json.dumps(data['token'])
+        
+        # Create device record
         with engine.connect() as conn:
-            # Check if device already exists
+            # Check if device exists
             existing_device = conn.execute(
                 select(Device).where(
                     and_(
@@ -43,7 +54,7 @@ def register_device(user_id, device_id):
             
             if existing_device:
                 # Update existing device
-                conn.execute(
+                result = conn.execute(
                     Device.__table__.update()
                     .where(
                         and_(
@@ -54,23 +65,24 @@ def register_device(user_id, device_id):
                     )
                     .values(
                         platform=data['platform'],
-                        token=data['token']
+                        token=data['token'],
+                        updated_at=datetime.utcnow()
                     )
                 )
             else:
-                # Create new device
+                # Insert new device
                 device = Device(
+                    project_id=g.project_id,
                     user_id=user_id,
                     device_id=device_id,
                     platform=data['platform'],
-                    token=data['token'],
-                    project_id=g.project_id
+                    token=data['token']
                 )
-                conn.execute(Device.__table__.insert(), device.__dict__)
+                result = conn.execute(Device.__table__.insert(), device.__dict__)
             
             conn.commit()
             
-            # Get the updated/created device
+            # Get the device to return
             device = conn.execute(
                 select(Device).where(
                     and_(
@@ -81,7 +93,15 @@ def register_device(user_id, device_id):
                 )
             ).first()
             
-            return jsonify(device._asdict()), 200
+            if not device:
+                return jsonify({"error": "Failed to create/update device"}), 500
+            
+            # For web push, parse the token back to JSON
+            device_dict = device._asdict()
+            if device_dict['platform'] == 'web':
+                device_dict['token'] = json.loads(device_dict['token'])
+            
+            return jsonify(device_dict), 200
             
     except Exception as e:
         return jsonify({"error": str(e)}), 500

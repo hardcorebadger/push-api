@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, g
 from sqlalchemy import select, and_
 from app.database import engine
-from app.db.models import Message, Device
+from app.db.models import Message, Device, Project
 from app.redis import redis_client
 from datetime import datetime
 import traceback
@@ -65,17 +65,35 @@ def send_message():
                 
             devices = conn.execute(devices_query).fetchall()
             
-            # Queue the send tasks in Redis
+            # Fetch project VAPID keys once
+            project = conn.execute(
+                select(Project).where(Project.id == g.project_id)
+            ).first()
+            project_vapid = project._asdict() if project else {}
+
+            # Store device info in Redis and queue tasks
             for device in devices:
+                # Store device info in Redis
+                device_key = f"device:{device.device_id}"
+                redis_client.hset(device_key, mapping={
+                    'token': device.token,
+                    'platform': device.platform,
+                    'user_id': device.user_id,
+                    'project_id': str(device.project_id)
+                })
+                
+                # Queue task, including VAPID keys for web devices
                 task = {
                     'message_id': str(message.id),
                     'device_id': device.device_id,
-                    'platform': device.platform,
-                    'token': device.token,
                     'title': message.title,
                     'body': message.body,
                     'category': message.category
                 }
+                if device.platform == 'web':
+                    task['vapid_public_key'] = project_vapid.get('vapid_public_key')
+                    task['vapid_private_key'] = project_vapid.get('vapid_private_key')
+                    task['vapid_subject'] = project_vapid.get('vapid_subject')
                 redis_client.lpush('push_tasks', json.dumps(task))
             
             # Format response

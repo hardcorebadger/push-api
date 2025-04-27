@@ -1,7 +1,14 @@
 -- Seed projects
-INSERT INTO projects (id, name, api_key) VALUES
-  ('proj_123', 'Test Project', 'test_api_key_123'),
-  ('proj_456', 'Demo Project', 'demo_api_key_456');
+INSERT INTO projects (id, name, api_key, vapid_public_key, vapid_private_key, vapid_subject) VALUES
+  ('proj_123', 'Test Project', 'test_api_key_123',
+  'BL1UTG9y___ns5iHj5yI-LnDUmm4Ys5yD18H3yUVRKDKiBXaF_fvU-UpH0jpfv2Mnl4VgP-H0Op5pLTkZvwO6_M',
+  'QrHprlTqnTwmnAIc5GNXsGpAWWFiwJyFoOIX5Gs-9Kw',
+  'mailto:admin@mail.com'),
+
+  ('proj_456', 'Demo Project', 'demo_api_key_456',
+  'BL1UTG9y___ns5iHj5yI-LnDUmm4Ys5yD18H3yUVRKDKiBXaF_fvU-UpH0jpfv2Mnl4VgP-H0Op5pLTkZvwO6_M',
+  'QrHprlTqnTwmnAIc5GNXsGpAWWFiwJyFoOIX5Gs-9Kw',
+  'mailto:admin@mail.com');
 
 -- Seed devices
 INSERT INTO devices (project_id, user_id, device_id, platform, token) VALUES

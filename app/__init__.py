@@ -4,11 +4,22 @@ from functools import wraps
 from sqlalchemy import select
 from app.database import engine
 from app.db.models import Project
+from flask_cors import CORS
 
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+    
+    # Configure CORS
+    CORS(app, 
+         resources={r"/*": {
+             "origins": ["http://localhost:8000"],
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+             "allow_headers": ["Content-Type", "Authorization"],
+             "supports_credentials": True
+         }},
+         expose_headers=["Content-Type", "Authorization"])
 
     # Register blueprints
     from app.api import devices, messages

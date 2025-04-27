@@ -12,6 +12,9 @@ class Project(Base):
     api_key = Column(String, nullable=False, unique=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    vapid_public_key = Column(String, nullable=True)
+    vapid_private_key = Column(String, nullable=True)
+    vapid_subject = Column(String, nullable=True)
 
 class Device(Base):
     __tablename__ = 'devices'
