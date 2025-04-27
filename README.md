@@ -6,7 +6,7 @@ The simple push notification API built for developers.
 ### env setup
 `python -m venv env`
 `source env/bin/activate`
-`pip install -m requirements.txt`
+`pip install -r requirements.txt`
 
 ### docker setup
 `docker-compose up -d` 
@@ -29,3 +29,12 @@ Development (Hot reload)
 
 Production
 `gunicorn main:app`
+
+## Railway setup
+
+1. Connect this root folder from github
+2. Add a postgres db
+3. set env vars for DATABASE_URL using the instance
+4. set up deploy commands:
+- Pre deploy `python -m app.db.manage reset`
+- Deploy `gunicorn main:app`

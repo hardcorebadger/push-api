@@ -2,8 +2,10 @@ from flask import Blueprint, jsonify, request, g
 from sqlalchemy import select, and_
 from app.database import engine
 from app.db.models import Message, Device
+from app.redis import redis_client
 from datetime import datetime
 import traceback
+import json
 
 bp = Blueprint('messages', __name__, url_prefix='/messages')
 
@@ -63,7 +65,18 @@ def send_message():
                 
             devices = conn.execute(devices_query).fetchall()
             
-            # TODO: Send to devices via Redis queue
+            # Queue the send tasks in Redis
+            for device in devices:
+                task = {
+                    'message_id': str(message.id),
+                    'device_id': device.device_id,
+                    'platform': device.platform,
+                    'token': device.token,
+                    'title': message.title,
+                    'body': message.body,
+                    'category': message.category
+                }
+                redis_client.lpush('push_tasks', json.dumps(task))
             
             # Format response
             response_data = {
