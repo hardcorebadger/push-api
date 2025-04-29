@@ -48,8 +48,9 @@ def seed_database():
         with engine.connect() as conn:
             with open(seed_file, 'r') as f:
                 seed_sql = f.read()
-                conn.execute(text(seed_sql))
-                conn.commit()
+                if len(seed_sql) > 0:
+                    conn.execute(text(seed_sql))
+                    conn.commit()
         print("Database seeded successfully")
     else:
         print("No seed file found")

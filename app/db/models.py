@@ -15,6 +15,11 @@ class Project(Base):
     vapid_public_key = Column(String, nullable=True)
     vapid_private_key = Column(String, nullable=True)
     vapid_subject = Column(String, nullable=True)
+    fcm_credentials_json = Column(String, nullable=True)
+    apns_key_id = Column(String, nullable=True)
+    apns_team_id = Column(String, nullable=True)
+    apns_bundle_id = Column(String, nullable=True)
+    apns_private_key = Column(String, nullable=True)
 
 class Device(Base):
     __tablename__ = 'devices'

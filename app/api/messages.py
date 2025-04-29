@@ -71,7 +71,7 @@ def send_message():
             project = conn.execute(
                 select(Project).where(Project.id == g.project_id)
             ).first()
-            project_vapid = project._asdict() if project else {}
+            project_data = project._asdict() if project else {}
 
             # Store device info in Redis and queue tasks
             for device in devices:
@@ -97,10 +97,18 @@ def send_message():
                     'action_url': message.action_url
                 }
                 if device.platform == 'web':
-                    task['vapid_public_key'] = project_vapid.get('vapid_public_key')
-                    task['vapid_private_key'] = project_vapid.get('vapid_private_key')
-                    task['vapid_subject'] = project_vapid.get('vapid_subject')
+                    task['vapid_public_key'] = project_data.get('vapid_public_key')
+                    task['vapid_private_key'] = project_data.get('vapid_private_key')
+                    task['vapid_subject'] = project_data.get('vapid_subject')
+                if device.platform == 'android':
+                    task['fcm_credentials_json'] = project_data.get('fcm_credentials_json')
+                if device.platform == 'ios':
+                    task['apns_key_id'] = project_data.get('apns_key_id')
+                    task['apns_team_id'] = project_data.get('apns_team_id')
+                    task['apns_bundle_id'] = project_data.get('apns_bundle_id')
+                    task['apns_private_key'] = project_data.get('apns_private_key')
                 redis_client.lpush('push_tasks', json.dumps(task))
+                print(f"Task queued: {task}")
             
             # Format response
             response_data = {
