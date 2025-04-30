@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, request, g
-from sqlalchemy import select, and_
+from sqlalchemy import delete, select, and_
 from app.database import engine
 from app.db.models import Message, Device, Project
+from app.push import send_web_push, send_android_push, send_ios_push
+from app.utils.crypto import decrypt_project_credentials
 from app.redis import redis_client
 from datetime import datetime
 import traceback
@@ -68,47 +70,88 @@ def send_message():
             devices = conn.execute(devices_query).fetchall()
             
             # Fetch project VAPID keys once
-            project = conn.execute(
+            project_query = conn.execute(
                 select(Project).where(Project.id == g.project_id)
             ).first()
-            project_data = project._asdict() if project else {}
+            project = project_query._asdict() if project_query else {}
+
+            project = decrypt_project_credentials(project)
+
+            # Device deletion function
+            def delete_device(device):
+                with engine.connect() as conn:
+                    conn.execute(
+                        delete(Device).where(
+                            (Device.device_id == device.device_id) &
+                            (Device.user_id == device.user_id) &
+                            (Device.project_id == device.project_id)
+                        )
+                    )
+                    conn.commit()
+
+            results = {}
 
             # Store device info in Redis and queue tasks
             for device in devices:
-                # Store device info in Redis
-                device_key = f"device:{device.device_id}"
-                redis_client.hset(device_key, mapping={
-                    'token': device.token,
-                    'platform': device.platform,
-                    'user_id': device.user_id,
-                    'project_id': str(device.project_id)
-                })
-                
-                # Queue task, including VAPID keys for web devices, icon, and action_url
-                task = {
-                    'message_id': str(message.id),
-                    'device_id': device.device_id,
-                    'user_id': device.user_id,
-                    'project_id': str(device.project_id),
-                    'title': message.title,
-                    'body': message.body,
-                    'category': message.category,
-                    'icon': message.icon,
-                    'action_url': message.action_url
-                }
                 if device.platform == 'web':
-                    task['vapid_public_key'] = project_data.get('vapid_public_key')
-                    task['vapid_private_key'] = project_data.get('vapid_private_key')
-                    task['vapid_subject'] = project_data.get('vapid_subject')
-                if device.platform == 'android':
-                    task['fcm_credentials_json'] = project_data.get('fcm_credentials_json')
-                if device.platform == 'ios':
-                    task['apns_key_id'] = project_data.get('apns_key_id')
-                    task['apns_team_id'] = project_data.get('apns_team_id')
-                    task['apns_bundle_id'] = project_data.get('apns_bundle_id')
-                    task['apns_private_key'] = project_data.get('apns_private_key')
-                redis_client.lpush('push_tasks', json.dumps(task))
-                print(f"Task queued: {task}")
+                    result, details = send_web_push(device, message, project)
+                elif device.platform == 'android':
+                    result, details = send_android_push(device, message, project)
+                elif device.platform == 'ios':
+                    result, details = send_ios_push(device, message, project)
+                else:
+                    print(f"Skipping unsupported platform: {device.platform}")
+                    result = 'skipped'
+                
+                if result == 'invalid':
+                    delete_device(device)
+                    print(f"Device {device.device_id} deleted due to invalid {device.platform} push credentials")
+                
+                elif result == 'failed':
+                    print(f"Failed to deliver {device.platform} push for deevice {device.device_id}: {details}")
+
+                elif result == 'error':
+                    print(f"Error while sending {device.platform} push for device {device.device_id}: {details}")
+
+                else:
+                    print(f"Successfully delivered {device.platform} push for device {device.device_id}")
+                
+                results[device.device_id] =result
+
+                # Store device info in Redis
+                # device_key = f"device:{device.device_id}"
+                # redis_client.hset(device_key, mapping={
+                #     'token': device.token,
+                #     'platform': device.platform,
+                #     'user_id': device.user_id,
+                #     'project_id': str(device.project_id)
+                # })
+                
+                # # Queue task, including VAPID keys for web devices, icon, and action_url
+                # task = {
+                #     'message_id': str(message.id),
+                #     'device_id': device.device_id,
+                #     'user_id': device.user_id,
+                #     'project_id': str(device.project_id),
+                #     'title': message.title,
+                #     'body': message.body,
+                #     'category': message.category,
+                #     'icon': message.icon,
+                #     'action_url': message.action_url
+                # }
+                # if device.platform == 'web':
+                #     task['vapid_public_key'] = project_data.get('vapid_public_key')
+                #     task['vapid_private_key'] = project_data.get('vapid_private_key')
+                #     task['vapid_subject'] = project_data.get('vapid_subject')
+                # if device.platform == 'android':
+                #     task['fcm_credentials_json'] = project_data.get('fcm_credentials_json')
+                # if device.platform == 'ios':
+                #     task['apns_key_id'] = project_data.get('apns_key_id')
+                #     task['apns_team_id'] = project_data.get('apns_team_id')
+                #     task['apns_bundle_id'] = project_data.get('apns_bundle_id')
+                #     task['apns_private_key'] = project_data.get('apns_private_key')
+                # redis_client.lpush('push_tasks', json.dumps(task))
+                # print(f"Task queued: {task}")
             
             # Format response
             response_data = {
@@ -123,7 +166,7 @@ def send_message():
                 'devices': [{
                     'deviceIdentifier': device.device_id,
                     'platform': device.platform,
-                    'status': 'pending'
+                    'status': results[device.device_id]
                 } for device in devices]
             }
             
