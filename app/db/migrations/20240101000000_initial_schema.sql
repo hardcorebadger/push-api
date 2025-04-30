@@ -19,25 +19,25 @@ create table projects (
 create table devices (
   id bigint primary key generated always as identity,
   project_id text not null references projects(id),
-  user_id text not null,
-  device_id text not null,
+  user_id text,
   platform text not null,
   token text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now()),
-  unique(project_id, user_id, device_id)
+  unique(project_id, platform, token)
 );
 
 -- Create messages table (base message)
 create table messages (
   id bigint primary key generated always as identity,
   project_id text not null references projects(id),
-  user_id text not null,
+  user_id text,
+  platform text,
+  device_id bigint references devices(id),
   title text not null,
   body text not null,
-  category text null,
-  icon text null,
-  action_url text null,
+  icon text,
+  action_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );

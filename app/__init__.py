@@ -18,11 +18,19 @@ fernet = Fernet(ENCRYPTION_KEY) if ENCRYPTION_KEY else None
 
 def create_app():
     app = Flask(__name__)
+    app.url_map.strict_slashes = False
     
     # Configure CORS
     CORS(app, 
          resources={r"/*": {
-             "origins": ["http://localhost:8000"],
+             "origins": [
+                 "http://localhost:8000",
+                 "http://127.0.0.1:8000",
+                 "http://localhost:8080",
+                 "http://127.0.0.1:8080",
+                 "http://localhost:3000",
+                 "http://127.0.0.1:3000"
+             ],
              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
              "allow_headers": ["Content-Type", "Authorization"],
              "supports_credentials": True
@@ -39,6 +47,8 @@ def create_app():
     def authenticate():
         # Skip authentication for OPTIONS requests
         if request.method == 'OPTIONS':
+            print(request.origin)
+
             return
 
         # Skip authentication for admin routes

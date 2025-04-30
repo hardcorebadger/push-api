@@ -26,15 +26,14 @@ class Device(Base):
     
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     project_id = Column(String, ForeignKey('projects.id'), nullable=False)
-    user_id = Column(String, nullable=False)
-    device_id = Column(String, nullable=False)
+    user_id = Column(String, nullable=True)
     platform = Column(String, nullable=False)
     token = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
     
     __table_args__ = (
-        UniqueConstraint('project_id', 'user_id', 'device_id', name='uix_devices_project_user_device'),
+        UniqueConstraint('project_id', 'platform', 'token', name='devices_project_id_platform_token_key'),
     )
 
 class Message(Base):
@@ -42,10 +41,11 @@ class Message(Base):
     
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     project_id = Column(String, ForeignKey('projects.id'), nullable=False)
-    user_id = Column(String, nullable=False)
+    user_id = Column(String, nullable=True)
+    platform = Column(String, nullable=True)
+    device_id = Column(BigInteger, ForeignKey('devices.id'), nullable=True)
     title = Column(String, nullable=False)
     body = Column(String, nullable=False)
-    category = Column(String, nullable=True)
     icon = Column(String, nullable=True)
     action_url = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
